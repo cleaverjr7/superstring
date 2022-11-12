@@ -1,9 +1,9 @@
 const http = require('http')
 const fs = require('fs')
-const unzip = require('unzip')
+const unzipper = require('unzipper')
 const { TextBuffer } = require('..')
 
-const unzipper = unzip.Parse()
+
 
 const getText = () => {
   return new Promise(resolve => {

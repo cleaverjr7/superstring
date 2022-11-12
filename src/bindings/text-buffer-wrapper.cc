@@ -387,7 +387,7 @@ static Local<Value> encode_ranges(const vector<Range> &ranges) {
   auto length = ranges.size() * 4;
   auto buffer = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), length * sizeof(uint32_t));
   auto result = v8::Uint32Array::New(buffer, 0, length);
-  auto data = buffer->GetContents().Data();
+  auto data = buffer->GetBackingStore()->Data();
   memcpy(data, ranges.data(), length * sizeof(uint32_t));
   return result;
 }
@@ -611,7 +611,7 @@ void TextBufferWrapper::find_words_with_subsequence_in_range(const Nan::Function
       }
 
       auto positions_buffer = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), positions_buffer_size);
-      uint32_t *positions_data = reinterpret_cast<uint32_t *>(positions_buffer->GetContents().Data());
+      uint32_t *positions_data = reinterpret_cast<uint32_t *>(positions_buffer->GetBackingStore()->Data());
 
       uint32_t positions_array_index = 0;
       for (size_t i = 0; i < result.size() && i < max_count; i++) {

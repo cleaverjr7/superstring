@@ -1,13 +1,13 @@
 const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
-const {Writable} = require('stream')
-const {assert} = require('chai')
-const {TextBuffer, MarkerIndex} = require('../..')
+const { Writable } = require('stream')
+const { assert } = require('chai')
+const { TextBuffer, MarkerIndex } = require('../..')
 const Random = require('random-seed')
 const TestDocument = require('./helpers/test-document')
-const {traverse} = require('./helpers/point-helpers')
-const {getExtent} = require('./helpers/text-helpers')
+const { traverse } = require('./helpers/point-helpers')
+const { getExtent } = require('./helpers/text-helpers')
 const words = require('./helpers/words')
 const MAX_INT32 = 4294967296
 
@@ -77,12 +77,12 @@ if (process.platform !== 'win32') {
 
 describe('TextBuffer', () => {
   describe('.load', () => {
-    if (!TextBuffer.prototype.load) return;
+    if (!TextBuffer.prototype.load) return
 
     it('can load from a file at a given path', () => {
       const buffer = new TextBuffer()
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const content = 'a\nb\nc\n'.repeat(10 * 1024)
       fs.writeFileSync(filePath, content)
 
@@ -99,7 +99,7 @@ describe('TextBuffer', () => {
     it('can load from a given stream', () => {
       const buffer = new TextBuffer()
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const fileContent = 'abc def ghi jkl\n'.repeat(10 * 1024)
       fs.writeFileSync(filePath, fileContent)
 
@@ -116,7 +116,7 @@ describe('TextBuffer', () => {
     it('can load from a given stream with an encoding already set', () => {
       const buffer = new TextBuffer()
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const fileContent = 'abc def ghi jkl\n'.repeat(1024)
       fs.writeFileSync(filePath, fileContent)
 
@@ -128,27 +128,30 @@ describe('TextBuffer', () => {
 
     it('resolves with a Patch representing the difference between the old and new text', () => {
       const buffer = new TextBuffer('cat\ndog\nelephant\nfox')
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       fs.writeFileSync(filePath, 'bug\ncat\ndog\nelephant\nfox\ngoat')
 
       let progressCallbackPatch
       return buffer.load(filePath, (percentDone, patch) => {
         progressCallbackPatch = patch
       }).then(patch => {
-
         // The patch is also passed to the progress callback on the final call.
         assert.equal(progressCallbackPatch, patch)
 
         assert.deepEqual(toPlainObject(patch.getChanges()), [
           {
-            oldStart: {row: 0, column: 0}, oldEnd: {row: 0, column: 0},
-            newStart: {row: 0, column: 0}, newEnd: {row: 1, column: 0},
+            oldStart: { row: 0, column: 0 },
+            oldEnd: { row: 0, column: 0 },
+            newStart: { row: 0, column: 0 },
+            newEnd: { row: 1, column: 0 },
             oldText: '',
             newText: 'bug\n'
           },
           {
-            oldStart: {row: 3, column: 3}, oldEnd: {row: 3, column: 3},
-            newStart: {row: 4, column: 3}, newEnd: {row: 5, column: 4},
+            oldStart: { row: 3, column: 3 },
+            oldEnd: { row: 3, column: 3 },
+            newStart: { row: 4, column: 3 },
+            newEnd: { row: 5, column: 4 },
             oldText: '',
             newText: '\ngoat'
           }
@@ -158,7 +161,7 @@ describe('TextBuffer', () => {
 
     it('resolves with an empty patch when the contents of the file have not changed', () => {
       const buffer = new TextBuffer('cat\ndog\nelephant\nfox')
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       fs.writeFileSync(filePath, 'cat\ndog\nelephant\nfox')
 
       return buffer.load(filePath).then(patch => {
@@ -170,11 +173,11 @@ describe('TextBuffer', () => {
     it('can load a file in a non-UTF8 encoding', () => {
       const buffer = new TextBuffer()
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const content = 'a\nb\nc\n'.repeat(10)
       fs.writeFileSync(filePath, content, 'utf16le')
 
-      return buffer.load(filePath, {encoding: 'UTF-16LE'}).then(() =>
+      return buffer.load(filePath, { encoding: 'UTF-16LE' }).then(() =>
         assert.equal(buffer.getText(), content)
       )
     })
@@ -182,19 +185,19 @@ describe('TextBuffer', () => {
     it('rejects its promise if an invalid encoding is given', () => {
       const buffer = new TextBuffer()
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const content = 'a\nb\nc\n'.repeat(10)
       fs.writeFileSync(filePath, content, 'utf16le')
 
       let rejection = null
-      return buffer.load(filePath, {encoding: 'GARBAGE16'})
+      return buffer.load(filePath, { encoding: 'GARBAGE16' })
         .catch(error => rejection = error)
         .then(() => assert.equal(rejection.message, 'Invalid encoding name: GARBAGE16'))
     })
 
     it('aborts if the buffer is modified before the load', () => {
       const buffer = new TextBuffer('abc')
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       fs.writeFileSync(filePath, 'def')
 
       buffer.setText('ghi')
@@ -208,7 +211,7 @@ describe('TextBuffer', () => {
 
     it('aborts if the buffer is modified during the load', () => {
       const buffer = new TextBuffer('abc')
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       fs.writeFileSync(filePath, 'def')
 
       const loadPromise = buffer.load(filePath).then(result => {
@@ -227,7 +230,7 @@ describe('TextBuffer', () => {
       fs.writeFileSync(filePath, '123456789\n'.repeat(100))
 
       let progressCount = 0
-      function progressCallback() {
+      function progressCallback () {
         progressCount++
         return false
       }
@@ -244,7 +247,7 @@ describe('TextBuffer', () => {
       const buffer = new TextBuffer('abc')
       const filePath = temp.openSync().path
 
-      function progressCallback(percentDone, patch) {
+      function progressCallback (percentDone, patch) {
         if (patch) return false
       }
 
@@ -260,7 +263,7 @@ describe('TextBuffer', () => {
       fs.writeFileSync(filePath, 'abc', 'ascii')
 
       return Promise.all(encodings.map((encoding) =>
-        new TextBuffer().load(filePath, {encoding})
+        new TextBuffer().load(filePath, { encoding })
       ))
     })
 
@@ -282,32 +285,38 @@ describe('TextBuffer', () => {
     describe('when the `force` option is set to true', () => {
       it('discards any modifications and incorporates that change into the resolved patch', () => {
         const buffer = new TextBuffer('abcdef')
-        const {path: filePath} = temp.openSync()
+        const { path: filePath } = temp.openSync()
         fs.writeFileSync(filePath, '  abcdef')
 
         buffer.setTextInRange(Range(Point(0, 3), Point(0, 3)), ' ')
         assert.equal(buffer.getText(), 'abc def')
         assert.ok(buffer.isModified())
 
-        const loadPromise = buffer.load(filePath, {force: true}).then(patch => {
+        const loadPromise = buffer.load(filePath, { force: true }).then(patch => {
           assert.equal(buffer.getText(), '  abcdef')
           assert.notOk(buffer.isModified())
           assert.deepEqual(toPlainObject(patch.getChanges()), [
             {
-              oldStart: {row: 0, column: 0}, oldEnd: {row: 0, column: 0},
-              newStart: {row: 0, column: 0}, newEnd: {row: 0, column: 2},
+              oldStart: { row: 0, column: 0 },
+              oldEnd: { row: 0, column: 0 },
+              newStart: { row: 0, column: 0 },
+              newEnd: { row: 0, column: 2 },
               oldText: '',
               newText: '  '
             },
             {
-              oldStart: {row: 0, column: 3}, oldEnd: {row: 0, column: 4},
-              newStart: {row: 0, column: 5}, newEnd: {row: 0, column: 5},
+              oldStart: { row: 0, column: 3 },
+              oldEnd: { row: 0, column: 4 },
+              newStart: { row: 0, column: 5 },
+              newEnd: { row: 0, column: 5 },
               oldText: ' ',
               newText: ''
             },
             {
-              oldStart: {row: 0, column: 7}, oldEnd: {row: 0, column: 8},
-              newStart: {row: 0, column: 8}, newEnd: {row: 0, column: 8},
+              oldStart: { row: 0, column: 7 },
+              oldEnd: { row: 0, column: 8 },
+              newStart: { row: 0, column: 8 },
+              newEnd: { row: 0, column: 8 },
               oldText: ' ',
               newText: ''
             }
@@ -324,7 +333,7 @@ describe('TextBuffer', () => {
       it('marks the buffer as unmodified even if the reload does not change the text', () => {
         const buffer = new TextBuffer('abcdef')
 
-        const {path: filePath} = temp.openSync()
+        const { path: filePath } = temp.openSync()
         const fileContent = '  abcdef'
         fs.writeFileSync(filePath, fileContent)
 
@@ -332,7 +341,7 @@ describe('TextBuffer', () => {
         assert.ok(buffer.isModified())
         assert.equal(buffer.getText(), fileContent)
 
-        return buffer.load(filePath, {force: true}).then(patch => {
+        return buffer.load(filePath, { force: true }).then(patch => {
           assert.equal(patch.getChanges(), 0)
           assert.equal(buffer.getText(), '  abcdef')
           assert.notOk(buffer.isModified())
@@ -347,12 +356,12 @@ describe('TextBuffer', () => {
         const filePath = temp.openSync().path
         fs.writeFileSync(filePath, 'abc')
 
-        return buffer.load(filePath, {patch: false}).then((patch) => {
+        return buffer.load(filePath, { patch: false }).then((patch) => {
           assert.equal(patch, null)
           assert.equal(buffer.getText(), 'abc')
 
           buffer.setTextInRange(Range(Point(0, 0), Point(0, 0)), '  ')
-          return buffer.load(filePath, {patch: false, force: true}).then((patch) => {
+          return buffer.load(filePath, { patch: false, force: true }).then((patch) => {
             assert.equal(patch, null)
             assert.equal(buffer.getText(), 'abc')
           })
@@ -365,7 +374,7 @@ describe('TextBuffer', () => {
         const buffer = new TextBuffer()
         const filePath = temp.mkdirSync()
 
-        return buffer.load(filePath)
+        buffer.load(filePath)
           .then(() => {
             done(new Error('Expected an error'))
           })
@@ -387,7 +396,7 @@ describe('TextBuffer', () => {
         fs.symlinkSync(otherPath, filePath)
 
         const buffer = new TextBuffer()
-        return buffer.load(filePath)
+        buffer.load(filePath)
           .then(() => {
             done(new Error('Expected an error'))
           })
@@ -404,14 +413,14 @@ describe('TextBuffer', () => {
   })
 
   describe('.baseTextMatchesFile', () => {
-    if (!TextBuffer.prototype.baseTextMatchesFile) return;
+    if (!TextBuffer.prototype.baseTextMatchesFile) return
 
     it('indicates whether the base text matches the contents of the given file path', () => {
       const content = 'abc'
 
       const buffer = new TextBuffer(content)
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       fs.writeFileSync(filePath, content)
 
       return buffer.baseTextMatchesFile(filePath).then((result) => {
@@ -429,7 +438,7 @@ describe('TextBuffer', () => {
 
       const buffer = new TextBuffer(content)
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       fs.writeFileSync(filePath, content)
 
       return buffer.baseTextMatchesFile(fs.createReadStream(filePath)).then((result) => {
@@ -444,24 +453,28 @@ describe('TextBuffer', () => {
   })
 
   describe('.loadSync', () => {
-    if (!TextBuffer.prototype.loadSync) return;
+    if (!TextBuffer.prototype.loadSync) return
 
     it('returns a Patch representing the difference between the old and new text', () => {
       const buffer = new TextBuffer('cat\ndog\nelephant\nfox')
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       fs.writeFileSync(filePath, 'bug\ncat\ndog\nelephant\nfox\ngoat')
 
       const patch = buffer.loadSync(filePath, 'UTF-8')
       assert.deepEqual(toPlainObject(patch.getChanges()), [
         {
-          oldStart: {row: 0, column: 0}, oldEnd: {row: 0, column: 0},
-          newStart: {row: 0, column: 0}, newEnd: {row: 1, column: 0},
+          oldStart: { row: 0, column: 0 },
+          oldEnd: { row: 0, column: 0 },
+          newStart: { row: 0, column: 0 },
+          newEnd: { row: 1, column: 0 },
           oldText: '',
           newText: 'bug\n'
         },
         {
-          oldStart: {row: 3, column: 3}, oldEnd: {row: 3, column: 3},
-          newStart: {row: 4, column: 3}, newEnd: {row: 5, column: 4},
+          oldStart: { row: 3, column: 3 },
+          oldEnd: { row: 3, column: 3 },
+          newStart: { row: 4, column: 3 },
+          newEnd: { row: 5, column: 4 },
           oldText: '',
           newText: '\ngoat'
         }
@@ -470,7 +483,7 @@ describe('TextBuffer', () => {
   })
 
   describe('.save', () => {
-    if (!TextBuffer.prototype.save) return;
+    if (!TextBuffer.prototype.save) return
 
     it('writes the buffer\'s content to the given file', () => {
       const buffer = new TextBuffer('abcdefghijklmnopqrstuvwxyz')
@@ -480,7 +493,7 @@ describe('TextBuffer', () => {
       buffer.setTextInRange(Range(Point(0, 7), Point(0, 7)), '456')
       assert.equal(buffer.getText(), 'abc123d456efghijklmnopqrstuvwxyz')
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const savePromise = buffer.save(filePath)
 
       buffer.setTextInRange(Range(Point(0, 11), Point(0, 11)), '789')
@@ -500,7 +513,7 @@ describe('TextBuffer', () => {
       buffer.setTextInRange(Range(Point(0, 7), Point(0, 7)), '456')
       assert.equal(buffer.getText(), 'abc123d456efghijklmnopqrstuvwxyz')
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const savePromise = buffer.save(fs.createWriteStream(filePath))
 
       buffer.setTextInRange(Range(Point(0, 11), Point(0, 11)), '789')
@@ -520,7 +533,7 @@ describe('TextBuffer', () => {
     it('can write the buffer\'s long content to a given stream', () => {
       const buffer = new TextBuffer('abc def ghi jkl\n'.repeat(10 * 1024))
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const stream = fs.createWriteStream(filePath)
 
       return buffer.save(stream).then(() => {
@@ -530,10 +543,10 @@ describe('TextBuffer', () => {
     })
 
     it('handles concurrent saves', () => {
-      const {path: filePath1} = temp.openSync()
-      const {path: filePath2} = temp.openSync()
-      const {path: filePath3} = temp.openSync()
-      const {path: filePath4} = temp.openSync()
+      const { path: filePath1 } = temp.openSync()
+      const { path: filePath2 } = temp.openSync()
+      const { path: filePath3 } = temp.openSync()
+      const { path: filePath4 } = temp.openSync()
 
       const buffer = new TextBuffer('abc def ghi jkl\n'.repeat(10 * 1024))
 
@@ -569,7 +582,7 @@ describe('TextBuffer', () => {
     })
 
     it('can handle a variety of encodings', () => {
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
 
       return Promise.all(encodings.map((encoding) =>
         new TextBuffer('abc').save(filePath, encoding)
@@ -580,7 +593,7 @@ describe('TextBuffer', () => {
       const buffer = new TextBuffer('abc')
       buffer.setText('')
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const stream = fs.createWriteStream(filePath)
 
       return buffer.save(stream).then(() => {
@@ -593,7 +606,7 @@ describe('TextBuffer', () => {
       buffer.setTextInRange(Range(Point(0, 1), Point(0, 2)), '')
       assert.equal(buffer.getText(), 'ac')
 
-      const {path: filePath} = temp.openSync()
+      const { path: filePath } = temp.openSync()
       const stream = fs.createWriteStream(filePath)
 
       return buffer.save(stream).then(() => {
@@ -609,7 +622,7 @@ describe('TextBuffer', () => {
         buffer.setText('hello')
         assert.ok(buffer.isModified())
 
-        return buffer.save(filePath)
+        buffer.save(filePath)
           .then(() => {
             done(new Error('Expected an error'))
           })
@@ -634,7 +647,7 @@ describe('TextBuffer', () => {
         buffer.setText('hello')
         assert.ok(buffer.isModified())
 
-        return buffer.save(filePath)
+        buffer.save(filePath)
           .then(() => {
             done(new Error('Expected an error'))
           })
@@ -649,8 +662,8 @@ describe('TextBuffer', () => {
 
       it('rejects if neither the text nor the replacement character can be represented in the given encoding', (done) => {
         const buffer = new TextBuffer('💪💪💪')
-        const {path: filePath} = temp.openSync()
-        return buffer.save(filePath, 'iso88591')
+        const { path: filePath } = temp.openSync()
+        buffer.save(filePath, 'iso88591')
           .then(() => {
             done(new Error('Expected an error'))
           })
@@ -674,7 +687,7 @@ describe('TextBuffer', () => {
         assert.ok(buffer.isModified())
 
         const stream = new Writable({
-          write(chunk, encoding, callback) {
+          write (chunk, encoding, callback) {
             process.nextTick(() => callback(new Error('Could not write to stream')))
           }
         })
@@ -702,7 +715,7 @@ describe('TextBuffer', () => {
         assert.ok(buffer.isModified())
 
         const stream = new Writable({
-          write(chunk, encoding, callback) {
+          write (chunk, encoding, callback) {
             callback()
           }
         })
@@ -1003,11 +1016,11 @@ describe('TextBuffer', () => {
 
       assert.deepEqual(buffer.findAllSync(/\d[a-z]/), [
         Range(Point(0, 1), Point(0, 3)),
-        Range(Point(0, 3), Point(0, 5)),
+        Range(Point(0, 3), Point(0, 5))
       ])
       assert.deepEqual(await buffer.findAll(/\d[a-z]/), [
         Range(Point(0, 1), Point(0, 3)),
-        Range(Point(0, 3), Point(0, 5)),
+        Range(Point(0, 3), Point(0, 5))
       ])
     })
 
@@ -1034,7 +1047,7 @@ describe('TextBuffer', () => {
         Range(Point(0, 0), Point(0, 3)),
         Range(Point(1, 0), Point(1, 1)),
         Range(Point(2, 0), Point(2, 0)),
-        Range(Point(3, 0), Point(3, 0)),
+        Range(Point(3, 0), Point(3, 0))
       ])
     })
 
@@ -1056,24 +1069,24 @@ describe('TextBuffer', () => {
 
       assert.deepEqual(buffer.findAllSync(/ab/i), [
         Range(Point(0, 0), Point(0, 2)),
-        Range(Point(1, 0), Point(1, 2)),
+        Range(Point(1, 0), Point(1, 2))
       ])
     })
 
     it('returns the same results as a reference implementation', () => {
       for (let i = 0; i < 3; i++) {
         const generateSeed = Random.create()
-        let seed = generateSeed(MAX_INT32)
+        const seed = generateSeed(MAX_INT32)
         const random = new Random(seed)
-        console.log('Seed: ', seed);
+        console.log('Seed: ', seed)
 
         const testDocument = new TestDocument(seed)
         const buffer = new TextBuffer(testDocument.getText())
 
         for (let j = 0; j < 10; j++) {
-          const {start, deletedExtent, insertedText} = testDocument.performRandomSplice()
+          const { start, deletedExtent, insertedText } = testDocument.performRandomSplice()
           buffer.setTextInRange(
-            {start, end: traverse(start, deletedExtent)},
+            { start, end: traverse(start, deletedExtent) },
             insertedText
           )
         }
@@ -1085,7 +1098,7 @@ describe('TextBuffer', () => {
           /[ \t]+$/mg,
           /\w{3}\n\w/mg,
           /[g-z]+\n\s*[a-f]+/mg,
-          /[a-f]+(?=\w+)/mg,
+          /[a-f]+(?=\w+)/mg
         ]
 
         for (let j = 0; j < 10; j++) {
@@ -1093,7 +1106,7 @@ describe('TextBuffer', () => {
           if (random(2)) {
             regex = regexes[random(regexes.length)]
           } else {
-            const {start, end} = testDocument.buildRandomRange()
+            const { start, end } = testDocument.buildRandomRange()
             let substring = testDocument.getTextInRange(start, end)
             if (substring === '') substring += '.'
             regex = new RegExp(substring, 'g')
@@ -1106,7 +1119,7 @@ describe('TextBuffer', () => {
           } else {
             const rowCount = testDocument.getExtent().row
             const [startRow, endRow] = [random(rowCount), random(rowCount)].sort((a, b) => a - b)
-            const searchRange = {start: {row: startRow, column: 0}, end: {row: endRow, column: Infinity}}
+            const searchRange = { start: { row: startRow, column: 0 }, end: { row: endRow, column: Infinity } }
             const expectedRanges = testDocument.searchAllInRange(searchRange, regex)
             const actualRanges = buffer.findAllInRangeSync(regex, searchRange)
             assert.deepEqual(actualRanges, expectedRanges, `Regex: ${regex}, range: ${JSON.stringify(searchRange)}, text: ${testDocument.getText()}`)
@@ -1116,7 +1129,7 @@ describe('TextBuffer', () => {
     })
 
     it('can be called repeatedly between buffer mutations without harming performance', () => {
-      let seed = Date.now()
+      const seed = Date.now()
       const random = new Random(seed)
 
       let text = ''
@@ -1131,8 +1144,8 @@ describe('TextBuffer', () => {
       for (let i = 0; i < 25; i++) {
         const row = random(buffer.getLineCount())
         const column = random(buffer.lineLengthForRow(row))
-        const position = {row, column}
-        buffer.setTextInRange({start: position, end: position}, 'x')
+        const position = { row, column }
+        buffer.setTextInRange({ start: position, end: position }, 'x')
         buffer.lineLengthForRow(row)
         promises.push(buffer.findAll(/e/))
       }
@@ -1233,18 +1246,18 @@ describe('TextBuffer', () => {
       const count = buffer.findAndMarkAllSync(markerIndex, 5, true, /\w+/)
       assert.equal(count, 4)
       assert.deepEqual(markerIndex.dump(), {
-        5: {start: {column: 0, row: 0}, end: {column: 3, row: 0}},
-        6: {start: {column: 4, row: 0}, end: {column: 7, row: 0}},
-        7: {start: {column: 0, row: 1}, end: {column: 3, row: 1}},
-        8: {start: {column: 4, row: 1}, end: {column: 7, row: 1}}
+        5: { start: { column: 0, row: 0 }, end: { column: 3, row: 0 } },
+        6: { start: { column: 4, row: 0 }, end: { column: 7, row: 0 } },
+        7: { start: { column: 0, row: 1 }, end: { column: 3, row: 1 } },
+        8: { start: { column: 4, row: 1 }, end: { column: 7, row: 1 } }
       })
     })
   })
 
   describe('.findWordsWithSubsequence and .findWordsWithSubsequenceInRange', () => {
     it('doesn\'t crash intermittently', () => {
-      let buffer;
-      let promises = []
+      let buffer
+      const promises = []
       for (let k = 0; k < 100; k++) {
         buffer = new TextBuffer('abc')
         promises.push(
@@ -1260,27 +1273,27 @@ describe('TextBuffer', () => {
         assert.deepEqual(result, [
           {
             score: 29,
-            matchIndices: [0, 1, 2 ],
-            positions: [{row: 0, column: 36}],
-            word: "bNa"
+            matchIndices: [0, 1, 2],
+            positions: [{ row: 0, column: 36 }],
+            word: 'bNa'
           },
           {
             score: 16,
             matchIndices: [0, 2, 4],
-            positions: [{row: 0, column: 15}],
-            word: "ban_ana"
+            positions: [{ row: 0, column: 15 }],
+            word: 'ban_ana'
           },
           {
             score: 12,
             matchIndices: [0, 2, 3],
-            positions: [{row: 0, column: 0}, {row: 1, column: 0}],
-            word: "banana"
+            positions: [{ row: 0, column: 0 }, { row: 1, column: 0 }],
+            word: 'banana'
           },
           {
             score: 7,
             matchIndices: [0, 5, 6],
-            positions: [{row: 0, column: 7}],
-            word: "bandana"
+            positions: [{ row: 0, column: 7 }],
+            word: 'bandana'
           }
         ])
       })
@@ -1288,26 +1301,26 @@ describe('TextBuffer', () => {
 
     it('resolves with all words matching the given query and range', () => {
       const buffer = new TextBuffer('banana bandana ban_ana bandaid band bNa\nbanana')
-      const range = {start: {column: 0, row: 0}, end: {column: 22, row: 0}}
+      const range = { start: { column: 0, row: 0 }, end: { column: 22, row: 0 } }
       return buffer.findWordsWithSubsequenceInRange('bna', '_', 4, range).then((result) => {
         assert.deepEqual(result, [
           {
             score: 16,
             matchIndices: [0, 2, 4],
-            positions: [{row: 0, column: 15}],
-            word: "ban_ana"
+            positions: [{ row: 0, column: 15 }],
+            word: 'ban_ana'
           },
           {
             score: 12,
             matchIndices: [0, 2, 3],
-            positions: [{row: 0, column: 0}],
-            word: "banana"
+            positions: [{ row: 0, column: 0 }],
+            word: 'banana'
           },
           {
             score: 7,
             matchIndices: [0, 5, 6],
-            positions: [{row: 0, column: 7}],
-            word: "bandana"
+            positions: [{ row: 0, column: 7 }],
+            word: 'bandana'
           }
         ])
       })
@@ -1320,10 +1333,10 @@ describe('TextBuffer', () => {
         clampedRange
       `)
 
-      assert.deepEqual((await buffer.findWordsWithSubsequence('lmp', '_', 3)).map(({word}) => word), [
+      assert.deepEqual((await buffer.findWordsWithSubsequence('lmp', '_', 3)).map(({ word }) => word), [
         'leading_mismatch_penalty',
         'partial_match_position',
-        'clampedRange',
+        'clampedRange'
       ])
     })
 
@@ -1335,11 +1348,11 @@ describe('TextBuffer', () => {
         savePromises
       `)
 
-      assert.deepEqual((await buffer.findWordsWithSubsequence('seri', '_', 4)).map(({word}) => word), [
+      assert.deepEqual((await buffer.findWordsWithSubsequence('seri', '_', 4)).map(({ word }) => word), [
         'deserialize',
         'deserializer',
         'savePromise',
-        'savePromises',
+        'savePromises'
       ])
     })
 
@@ -1355,7 +1368,7 @@ describe('TextBuffer', () => {
     })
 
     it('can be called repeatedly between buffer mutations without harming performance', () => {
-      let seed = Date.now()
+      const seed = Date.now()
       const random = new Random(seed)
 
       let text = ''
@@ -1369,21 +1382,21 @@ describe('TextBuffer', () => {
 
       const row = random(buffer.getLineCount())
       const column = random(buffer.lineLengthForRow(row))
-      const position = {row, column}
-      buffer.setTextInRange({start: position, end: position}, ' ')
+      const position = { row, column }
+      buffer.setTextInRange({ start: position, end: position }, ' ')
       position.column++
 
       // Simulate typing one character repeatedly
       let query = ''
       for (let i = 0; i < 100; i++) {
-        buffer.setTextInRange({start: position, end: position}, 'x')
+        buffer.setTextInRange({ start: position, end: position }, 'x')
         query += 'x'
         const text = buffer.getText()
-        promises.push(buffer.findWordsWithSubsequence(query, '', 1).then(matches => ({matches, text})))
+        promises.push(buffer.findWordsWithSubsequence(query, '', 1).then(matches => ({ matches, text })))
       }
 
       return Promise.all(promises).then(subsequenceMatchResults => {
-        for (const {matches, text} of subsequenceMatchResults) {
+        for (const { matches, text } of subsequenceMatchResults) {
           // If the search was cancelled, `findWordsWithSubsequence` will resolve with `null`.
           if (matches) {
             const buffer = new TextBuffer(text)
@@ -1392,7 +1405,8 @@ describe('TextBuffer', () => {
                 assert.equal(
                   buffer.getTextInRange({
                     start: position,
-                    end: {row: position.row, column: position.column + match.word.length}}
+                    end: { row: position.row, column: position.column + match.word.length }
+                  }
                   ),
                   match.word
                 )
@@ -1430,9 +1444,9 @@ describe('TextBuffer', () => {
   })
 
   describe('concurrent IO', function () {
-    if (!TextBuffer.prototype.load) return;
+    if (!TextBuffer.prototype.load) return
 
-    this.timeout(60 * 1000);
+    this.timeout(60 * 1000)
 
     it('handles multiple calls to .load at a time', () => {
       const buffer = new TextBuffer('abc')
@@ -1462,10 +1476,10 @@ describe('TextBuffer', () => {
 
     it('handles random concurrent IO calls', () => {
       const generateSeed = Random.create()
-      let seed = generateSeed(MAX_INT32)
+      const seed = generateSeed(MAX_INT32)
       const random = new Random(seed)
       const testDocument = new TestDocument(seed)
-      console.log('Seed: ', seed);
+      console.log('Seed: ', seed)
 
       const promises = []
       const buffer = new TextBuffer(testDocument.getText())
@@ -1489,24 +1503,24 @@ describe('TextBuffer', () => {
                 assert.equal(buffer.getText(), currentText)
               }
             }))
-            break;
+            break
           }
 
           case 1: {
             const text = testDocument.getText()
             const filePath = temp.openSync().path
             fs.writeFileSync(filePath, text, 'utf8')
-            promises.push(buffer.load(filePath, {force: true}).then((patch) => {
+            promises.push(buffer.load(filePath, { force: true }).then((patch) => {
               assert.equal(buffer.getText(), text)
               assert.equal(applyPatch(currentText, patch), text)
               currentText = text
               assert.notOk(buffer.isModified())
             }))
-            break;
+            break
           }
 
           case 2: {
-            const {start, deletedExtent, insertedText} = testDocument.performRandomSplice()
+            const { start, deletedExtent, insertedText } = testDocument.performRandomSplice()
             buffer.setTextInRange(Range(start, traverse(start, deletedExtent)), insertedText)
             const text = buffer.getText()
             const filePath = temp.openSync().path
@@ -1514,7 +1528,7 @@ describe('TextBuffer', () => {
             promises.push(buffer.save(filePath).then(() => {
               assert.equal(fs.readFileSync(filePath, 'utf8'), text)
             }))
-            break;
+            break
           }
 
           case 3: {
@@ -1524,7 +1538,7 @@ describe('TextBuffer', () => {
             promises.push(buffer.find(regex).then((result) => {
               assert.deepEqual(result, expectedRange)
             }))
-            break;
+            break
           }
         }
       }
@@ -1534,17 +1548,17 @@ describe('TextBuffer', () => {
   })
 })
 
-function referenceSearch(text, regex) {
+function referenceSearch (text, regex) {
   const match = regex.exec(text)
   if (match) {
     const start = getExtent(text.slice(0, match.index))
     const end = traverse(start, getExtent(match[0]))
-    return {start, end}
+    return { start, end }
   }
   return null
 }
 
-function applyPatch(text, patch) {
+function applyPatch (text, patch) {
   const buffer = new TextBuffer(text)
   const changes = patch.getChanges()
   for (let i = changes.length - 1; i >= 0; i--) {
@@ -1557,14 +1571,14 @@ function applyPatch(text, patch) {
   return buffer.getText()
 }
 
-function toPlainObject(value) {
+function toPlainObject (value) {
   return JSON.parse(JSON.stringify(value))
 }
 
-function Range(start, end) {
-  return {start, end}
+function Range (start, end) {
+  return { start, end }
 }
 
-function Point(row, column) {
-  return {row, column}
+function Point (row, column) {
+  return { row, column }
 }

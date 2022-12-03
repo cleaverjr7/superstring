@@ -1,7 +1,7 @@
 const Random = require('random-seed')
-const {traverse, traversalDistance, compare, isZero, max, format: formatPoint} = require('./helpers/point-helpers')
-const {assert} = require('chai')
-const {MarkerIndex} = require('../..')
+const { traverse, traversalDistance, compare, isZero, max, format: formatPoint } = require('./helpers/point-helpers')
+const { assert } = require('chai')
+const { MarkerIndex } = require('../..')
 const MAX_INT32 = 4294967296
 
 describe('MarkerIndex', () => {
@@ -20,7 +20,7 @@ describe('MarkerIndex', () => {
       idCounter = 1
 
       for (let j = 0; j < 50; j++) {
-        let n = random(10)
+        const n = random(10)
         if (n >= 4) { // 60% insert
           performInsert()
         } else if (n >= 2) { // 20% splice
@@ -55,8 +55,8 @@ describe('MarkerIndex', () => {
     }
 
     function verifyRanges () {
-      for (let marker of markers) {
-        let range = markerIndex.getRange(marker.id)
+      for (const marker of markers) {
+        const range = markerIndex.getRange(marker.id)
         assert.deepEqual(range.start, marker.start, `Marker ${marker.id} start. ` + seedMessage)
         assert.deepEqual(range.end, marker.end, `Marker ${marker.id} end. ` + seedMessage)
       }
@@ -65,13 +65,13 @@ describe('MarkerIndex', () => {
     function testDump () {
       if (markers.length === 0) return
 
-      let expectedSnapshot = {}
+      const expectedSnapshot = {}
 
-      for (let marker of markers) {
-        expectedSnapshot[marker.id] = {start: marker.start, end: marker.end}
+      for (const marker of markers) {
+        expectedSnapshot[marker.id] = { start: marker.start, end: marker.end }
       }
 
-      let actualSnapshot = markerIndex.dump()
+      const actualSnapshot = markerIndex.dump()
 
       assert.deepEqual(actualSnapshot, expectedSnapshot, seedMessage)
     }
@@ -82,30 +82,30 @@ describe('MarkerIndex', () => {
         return
       }
 
-      for (let markerId of node.leftMarkerIds) {
+      for (const markerId of node.leftMarkerIds) {
         assert(!alreadySeen.has(markerId), `Redundant path for ${markerId}. ` + seedMessage)
       }
-      for (let markerId of node.rightMarkerIds) {
+      for (const markerId of node.rightMarkerIds) {
         assert(!alreadySeen.has(markerId), `Redundant paths for ${markerId}. ` + seedMessage)
       }
 
       if (node.left) {
-        let alreadySeenOnLeft = new Set()
-        for (let markerId of alreadySeen) {
+        const alreadySeenOnLeft = new Set()
+        for (const markerId of alreadySeen) {
           alreadySeenOnLeft.add(markerId)
         }
-        for (let markerId of node.leftMarkerIds) {
+        for (const markerId of node.leftMarkerIds) {
           alreadySeenOnLeft.add(markerId)
         }
         verifyHighestPossiblePaths(node.left, alreadySeenOnLeft)
       }
 
       if (node.right) {
-        let alreadySeenOnRight = new Set()
-        for (let markerId of alreadySeen) {
+        const alreadySeenOnRight = new Set()
+        for (const markerId of alreadySeen) {
           alreadySeenOnRight.add(markerId)
         }
-        for (let markerId of node.rightMarkerIds) {
+        for (const markerId of node.rightMarkerIds) {
           alreadySeenOnRight.add(markerId)
         }
         verifyHighestPossiblePaths(node.right, alreadySeenOnRight)
@@ -113,33 +113,33 @@ describe('MarkerIndex', () => {
     }
 
     function verifyContinuousPaths () {
-      let startedMarkers = new Set()
-      let endedMarkers = new Set()
+      const startedMarkers = new Set()
+      const endedMarkers = new Set()
 
-      let iterator = markerIndex.iterator
+      const iterator = markerIndex.iterator
       iterator.reset()
       while (iterator.node && iterator.node.left) iterator.descendLeft()
 
       let node = iterator.node
       while (node) {
-        for (let markerId of node.leftMarkerIds) {
+        for (const markerId of node.leftMarkerIds) {
           assert(!endedMarkers.has(markerId), `Marker ${markerId} in left markers, but already ended. ` + seedMessage)
           assert(startedMarkers.has(markerId), `Marker ${markerId} in left markers, but not yet started. ` + seedMessage)
         }
 
-        for (let markerId of node.startMarkerIds) {
+        for (const markerId of node.startMarkerIds) {
           assert(!endedMarkers.has(markerId), `Marker ${markerId} in start markers, but already ended. ` + seedMessage)
           assert(!startedMarkers.has(markerId), `Marker ${markerId} in start markers, but already started. ` + seedMessage)
           startedMarkers.add(markerId)
         }
 
-        for (let markerId of node.endMarkerIds) {
+        for (const markerId of node.endMarkerIds) {
           assert(startedMarkers.has(markerId), `Marker ${markerId} in end markers, but not yet started. ` + seedMessage)
           startedMarkers.delete(markerId)
           endedMarkers.add(markerId)
         }
 
-        for (let markerId of node.rightMarkerIds) {
+        for (const markerId of node.rightMarkerIds) {
           assert(!endedMarkers.has(markerId), `Marker ${markerId} in right markers, but already ended. ` + seedMessage)
           assert(startedMarkers.has(markerId), `Marker ${markerId} in right markers, but not yet started. ` + seedMessage)
         }
@@ -151,19 +151,19 @@ describe('MarkerIndex', () => {
 
     function testFindIntersecting () {
       for (let i = 0; i < 10; i++) {
-        let [start, end] = getRange()
+        const [start, end] = getRange()
 
-        let expectedIds = new Set()
-        for (let marker of markers) {
+        const expectedIds = new Set()
+        for (const marker of markers) {
           if (compare(marker.start, end) <= 0 && compare(start, marker.end) <= 0) {
             expectedIds.add(marker.id)
           }
         }
 
-        let actualIds = markerIndex.findIntersecting(start, end)
+        const actualIds = markerIndex.findIntersecting(start, end)
 
         assert.equal(actualIds.size, expectedIds.size, seedMessage)
-        for (let id of expectedIds) {
+        for (const id of expectedIds) {
           assert(actualIds.has(id), `Expected ${id} to be in set. ` + seedMessage)
         }
       }
@@ -171,18 +171,18 @@ describe('MarkerIndex', () => {
 
     function testFindContaining () {
       for (let i = 0; i < 10; i++) {
-        let [start, end] = getRange()
+        const [start, end] = getRange()
 
-        let expectedIds = new Set()
-        for (let marker of markers) {
+        const expectedIds = new Set()
+        for (const marker of markers) {
           if (compare(marker.start, start) <= 0 && compare(end, marker.end) <= 0) {
             expectedIds.add(marker.id)
           }
         }
 
-        let actualIds = markerIndex.findContaining(start, end)
+        const actualIds = markerIndex.findContaining(start, end)
         assert.equal(actualIds.size, expectedIds.size, seedMessage)
-        for (let id of expectedIds) {
+        for (const id of expectedIds) {
           assert(actualIds.has(id), `Expected ${id} to be in set. ` + seedMessage)
         }
       }
@@ -190,18 +190,18 @@ describe('MarkerIndex', () => {
 
     function testFindContainedIn () {
       for (let i = 0; i < 10; i++) {
-        let [start, end] = getRange()
+        const [start, end] = getRange()
 
-        let expectedIds = new Set()
-        for (let marker of markers) {
+        const expectedIds = new Set()
+        for (const marker of markers) {
           if (compare(start, marker.start) <= 0 && compare(marker.end, end) <= 0) {
             expectedIds.add(marker.id)
           }
         }
 
-        let actualIds = markerIndex.findContainedIn(start, end)
+        const actualIds = markerIndex.findContainedIn(start, end)
         assert.equal(actualIds.size, expectedIds.size, seedMessage)
-        for (let id of expectedIds) {
+        for (const id of expectedIds) {
           assert(actualIds.has(id), `Expected ${id} to be in set. ` + seedMessage)
         }
       }
@@ -209,17 +209,17 @@ describe('MarkerIndex', () => {
 
     function testFindStartingIn () {
       for (let i = 0; i < 10; i++) {
-        let [start, end] = getRange()
+        const [start, end] = getRange()
 
-        let expectedIds = new Set()
-        for (let marker of markers) {
+        const expectedIds = new Set()
+        for (const marker of markers) {
           if (compare(start, marker.start) <= 0 && compare(marker.start, end) <= 0) {
             expectedIds.add(marker.id)
           }
         }
 
-        let actualIds = markerIndex.findStartingIn(start, end)
-        for (let id of expectedIds) {
+        const actualIds = markerIndex.findStartingIn(start, end)
+        for (const id of expectedIds) {
           assert(actualIds.has(id), `Expected ${id} to start in (${formatPoint(start)}, ${formatPoint(end)}). ` + seedMessage)
         }
         assert.equal(actualIds.size, expectedIds.size, seedMessage)
@@ -228,17 +228,17 @@ describe('MarkerIndex', () => {
 
     function testFindEndingIn () {
       for (let i = 0; i < 10; i++) {
-        let [start, end] = getRange()
+        const [start, end] = getRange()
 
-        let expectedIds = new Set()
-        for (let marker of markers) {
+        const expectedIds = new Set()
+        for (const marker of markers) {
           if (compare(start, marker.end) <= 0 && compare(marker.end, end) <= 0) {
             expectedIds.add(marker.id)
           }
         }
 
-        let actualIds = markerIndex.findEndingIn(start, end)
-        for (let id of expectedIds) {
+        const actualIds = markerIndex.findEndingIn(start, end)
+        for (const id of expectedIds) {
           assert(actualIds.has(id), `Expected ${id} to be in set. ` + seedMessage)
         }
         assert.equal(actualIds.size, expectedIds.size, seedMessage)
@@ -247,18 +247,18 @@ describe('MarkerIndex', () => {
 
     function testFindStartingAt () {
       for (let i = 0; i < 10; i++) {
-        let point = {row: random(100), column: random(100)}
+        const point = { row: random(100), column: random(100) }
 
-        let expectedIds = new Set()
-        for (let marker of markers) {
+        const expectedIds = new Set()
+        for (const marker of markers) {
           if (compare(marker.start, point) === 0) {
             expectedIds.add(marker.id)
           }
         }
 
-        let actualIds = markerIndex.findStartingAt(point)
+        const actualIds = markerIndex.findStartingAt(point)
         assert.equal(actualIds.size, expectedIds.size, seedMessage)
-        for (let id of expectedIds) {
+        for (const id of expectedIds) {
           assert(actualIds.has(id), `Expected ${id} to be in set. ` + seedMessage)
         }
       }
@@ -266,18 +266,18 @@ describe('MarkerIndex', () => {
 
     function testFindEndingAt () {
       for (let i = 0; i < 10; i++) {
-        let point = {row: random(100), column: random(100)}
+        const point = { row: random(100), column: random(100) }
 
-        let expectedIds = new Set()
-        for (let marker of markers) {
+        const expectedIds = new Set()
+        for (const marker of markers) {
           if (compare(marker.end, point) === 0) {
             expectedIds.add(marker.id)
           }
         }
 
-        let actualIds = markerIndex.findEndingAt(point)
+        const actualIds = markerIndex.findEndingAt(point)
         assert.equal(actualIds.size, expectedIds.size, seedMessage)
-        for (let id of expectedIds) {
+        for (const id of expectedIds) {
           assert(actualIds.has(id), `Expected ${id} to be in set. ` + seedMessage)
         }
       }
@@ -285,13 +285,13 @@ describe('MarkerIndex', () => {
 
     function testFindBoundariesAfter () {
       for (let i = 0; i < 10; i++) {
-        const start = {row: random(100), column: random(100)}
+        const start = { row: random(100), column: random(100) }
         const maxCount = random(20)
 
         const expectedContainingMarkerIds = []
         let expectedBoundaries = []
         const sortedMarkers = markers.slice().sort(compareMarkers)
-        for (let marker of sortedMarkers) {
+        for (const marker of sortedMarkers) {
           if (compare(marker.start, start) < 0 && compare(marker.end, start) >= 0) {
             expectedContainingMarkerIds.push(marker.id)
           }
@@ -326,7 +326,7 @@ describe('MarkerIndex', () => {
         }, [])
         expectedBoundaries = expectedBoundaries.slice(0, maxCount)
 
-        const {containingStart, boundaries} = markerIndex.findBoundariesAfter(start, maxCount)
+        const { containingStart, boundaries } = markerIndex.findBoundariesAfter(start, maxCount)
         assert.deepEqual(containingStart, expectedContainingMarkerIds, seedMessage)
 
         assert.equal(boundaries.length, expectedBoundaries.length, seedMessage)
@@ -349,27 +349,27 @@ describe('MarkerIndex', () => {
     }
 
     function performInsert () {
-      let id = idCounter++
-      let [start, end] = getRange()
-      let exclusive = !!random(2)
+      const id = idCounter++
+      const [start, end] = getRange()
+      const exclusive = !!random(2)
       write(() => `insert ${id}, ${formatPoint(start)}, ${formatPoint(end)}, exclusive: ${exclusive}`)
       assert(!markerIndex.has(id), `Expected marker index to not have ${id}. ` + seedMessage)
       markerIndex.insert(id, start, end)
       if (exclusive) markerIndex.setExclusive(id, true)
-      markers.push({id, start, end, exclusive})
+      markers.push({ id, start, end, exclusive })
       assert(markerIndex.has(id), `Expected marker index to have ${id}. ` + seedMessage)
     }
 
     function performSplice () {
-      let [start, oldExtent, newExtent] = getSplice()
+      const [start, oldExtent, newExtent] = getSplice()
       write(() => `splice ${formatPoint(start)}, ${formatPoint(oldExtent)}, ${formatPoint(newExtent)}`)
-      let actualInvalidatedSets = markerIndex.splice(start, oldExtent, newExtent)
-      let expectedInvalidatedSets = applySplice(markers, start, oldExtent, newExtent)
+      const actualInvalidatedSets = markerIndex.splice(start, oldExtent, newExtent)
+      const expectedInvalidatedSets = applySplice(markers, start, oldExtent, newExtent)
       checkInvalidatedSets(actualInvalidatedSets, expectedInvalidatedSets)
     }
 
     function performDelete () {
-      let [{id}] = markers.splice(random(markers.length), 1)
+      const [{ id }] = markers.splice(random(markers.length), 1)
       write(() => `delete ${id}`)
       assert(markerIndex.has(id), `Expected marker index to have ${id}. ` + seedMessage)
       markerIndex.remove(id)
@@ -377,10 +377,10 @@ describe('MarkerIndex', () => {
     }
 
     function getRange () {
-      let start = {row: random(100), column: random(100)}
+      const start = { row: random(100), column: random(100) }
       let end = start
       while (random(3) > 0) {
-        end = traverse(end, {row: random.intBetween(-10, 10), column: random.intBetween(-10, 10)})
+        end = traverse(end, { row: random.intBetween(-10, 10), column: random.intBetween(-10, 10) })
       }
       end.row = Math.max(end.row, 0)
       end.column = Math.max(end.column, 0)
@@ -393,11 +393,11 @@ describe('MarkerIndex', () => {
     }
 
     function getSplice () {
-      let [start, oldEnd] = getRange()
-      let oldExtent = traversalDistance(oldEnd, start)
-      let newExtent = {row: 0, column: 0}
+      const [start, oldEnd] = getRange()
+      const oldExtent = traversalDistance(oldEnd, start)
+      let newExtent = { row: 0, column: 0 }
       while (random(2)) {
-        newExtent = traverse(newExtent, {row: random(10), column: random(10)})
+        newExtent = traverse(newExtent, { row: random(10), column: random(10) })
       }
       return [start, oldExtent, newExtent]
     }
@@ -405,20 +405,20 @@ describe('MarkerIndex', () => {
     function applySplice (markers, spliceStart, oldExtent, newExtent) {
       if (isZero(oldExtent) && isZero(newExtent)) return
 
-      let spliceOldEnd = traverse(spliceStart, oldExtent)
-      let spliceNewEnd = traverse(spliceStart, newExtent)
-      let spliceDelta = traversalDistance(newExtent, oldExtent)
-      let isInsertion = isZero(oldExtent)
+      const spliceOldEnd = traverse(spliceStart, oldExtent)
+      const spliceNewEnd = traverse(spliceStart, newExtent)
+      const spliceDelta = traversalDistance(newExtent, oldExtent)
+      const isInsertion = isZero(oldExtent)
 
-      let invalidated = {
-        touch: new Set,
-        inside: new Set,
-        overlap: new Set,
-        surround: new Set
+      const invalidated = {
+        touch: new Set(),
+        inside: new Set(),
+        overlap: new Set(),
+        surround: new Set()
       }
 
-      for (let marker of markers) {
-        let isEmpty = compare(marker.start, marker.end) === 0
+      for (const marker of markers) {
+        const isEmpty = compare(marker.start, marker.end) === 0
 
         if (compare(spliceStart, marker.end) <= 0 && compare(marker.start, spliceOldEnd) <= 0) {
           let invalidateInside = compare(spliceStart, marker.end) < 0 && compare(spliceOldEnd, marker.start) > 0
@@ -449,11 +449,11 @@ describe('MarkerIndex', () => {
           }
         }
 
-        let moveMarkerStart =
+        const moveMarkerStart =
           (compare(spliceStart, marker.start) < 0) ||
             (marker.exclusive && (!isEmpty || isInsertion) && compare(spliceStart, marker.start) === 0)
 
-        let moveMarkerEnd =
+        const moveMarkerEnd =
           moveMarkerStart ||
             (compare(spliceStart, marker.end) < 0) ||
               (!marker.exclusive && compare(spliceOldEnd, marker.end) === 0)
@@ -479,12 +479,12 @@ describe('MarkerIndex', () => {
     }
 
     function checkInvalidatedSets (actualSets, expectedSets) {
-      for (let strategy in expectedSets) {
-        let expectedSet = expectedSets[strategy]
-        let actualSet = actualSets[strategy]
+      for (const strategy in expectedSets) {
+        const expectedSet = expectedSets[strategy]
+        const actualSet = actualSets[strategy]
 
         assert.equal(actualSet.size, expectedSet.size, `Strategy: ${strategy}. Expected: [${Array.from(expectedSet)}], Actual: [${Array.from(actualSet)}]. Seed ${seed}.`)
-        for (let markerId of expectedSet) {
+        for (const markerId of expectedSet) {
           assert(actualSet.has(markerId), `Expected marker ${markerId} to be invalidated via ${strategy} strategy. Seed ${seed}.`)
         }
       }
@@ -514,11 +514,11 @@ describe('MarkerIndex', () => {
   })
 
   it('can compare marker ranges', function () {
-    let index = new MarkerIndex()
-    index.insert(1, {row: 1, column: 2}, {row: 3, column: 4})
-    index.insert(2, {row: 1, column: 2}, {row: 3, column: 4})
-    index.insert(3, {row: 2, column: 2}, {row: 3, column: 4})
-    index.insert(4, {row: 1, column: 2}, {row: 3, column: 5})
+    const index = new MarkerIndex()
+    index.insert(1, { row: 1, column: 2 }, { row: 3, column: 4 })
+    index.insert(2, { row: 1, column: 2 }, { row: 3, column: 4 })
+    index.insert(3, { row: 2, column: 2 }, { row: 3, column: 4 })
+    index.insert(4, { row: 1, column: 2 }, { row: 3, column: 5 })
 
     assert.equal(index.compare(1, 2), 0)
     assert.equal(index.compare(2, 1), 0)
@@ -529,9 +529,9 @@ describe('MarkerIndex', () => {
   })
 
   it('handles range queries involving Infinity', () => {
-    let index = new MarkerIndex()
-    index.insert(1, {row: 10, column: 10}, {row: 20, column: 20})
-    let result = index.findEndingIn({row: 0, column: 0}, {row: Infinity, column: Infinity})
+    const index = new MarkerIndex()
+    index.insert(1, { row: 10, column: 10 }, { row: 20, column: 20 })
+    const result = index.findEndingIn({ row: 0, column: 0 }, { row: Infinity, column: Infinity })
     assert(result.has(1))
   })
 })

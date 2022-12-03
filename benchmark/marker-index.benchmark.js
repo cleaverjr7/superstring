@@ -1,19 +1,19 @@
-'use strict';
+'use strict'
 
 const Random = require('random-seed')
-const {MarkerIndex} = require('..')
-const {traverse, traversalDistance, compare} = require('../test/js/helpers/point-helpers')
+const { MarkerIndex } = require('..')
+const { traverse, traversalDistance, compare } = require('../test/js/helpers/point-helpers')
 
-let random = new Random(1)
-let markerIds = []
+const random = new Random(1)
+const markerIds = []
 let idCounter = 1
-let lastInsertionEnd = {row: 0, column: 0}
+let lastInsertionEnd = { row: 0, column: 0 }
 let markerIndex = null
-let sequentialInsertOperations = []
-let insertOperations = []
-let spliceOperations = []
-let deleteOperations = []
-let rangeQueryOperations = []
+const sequentialInsertOperations = []
+const insertOperations = []
+const spliceOperations = []
+const deleteOperations = []
+const rangeQueryOperations = []
 
 function runBenchmark () {
   for (let i = 0; i < 40000; i++) {
@@ -50,7 +50,7 @@ function profileOperations (name, operations) {
 }
 
 function enqueueSequentialInsert () {
-  let id = (idCounter++).toString()
+  const id = (idCounter++).toString()
   let row, startColumn, endColumn
   if (random(10) < 3) {
     row = lastInsertionEnd.row + 1 + random(3)
@@ -61,16 +61,16 @@ function enqueueSequentialInsert () {
     startColumn = lastInsertionEnd.column + 1 + random(20)
     endColumn = startColumn + random(20)
   }
-  lastInsertionEnd = {row, column: endColumn}
-  sequentialInsertOperations.push(['insert', [id, {row, column: startColumn}, lastInsertionEnd]])
+  lastInsertionEnd = { row, column: endColumn }
+  sequentialInsertOperations.push(['insert', [id, { row, column: startColumn }, lastInsertionEnd]])
 }
 
 function enqueueInsert () {
-  let id = (idCounter++).toString()
-  let range = getRange()
-  let start = range[0]
-  let end = range[1]
-  let exclusive = Boolean(random(2))
+  const id = (idCounter++).toString()
+  const range = getRange()
+  const start = range[0]
+  const end = range[1]
+  const exclusive = Boolean(random(2))
   markerIds.push(id)
   insertOperations.push(['insert', [id, start, end]])
   insertOperations.push(['setExclusive', [id, exclusive]])
@@ -80,20 +80,20 @@ function enqueueSplice () {
   spliceOperations.push(['splice', getSplice()])
 }
 
-function enqueueRangeQuery() {
+function enqueueRangeQuery () {
   rangeQueryOperations.push(['findIntersecting', getRange()])
 }
 
 function enqueueDelete () {
-  let id = markerIds.splice(random(markerIds.length), 1)
+  const id = markerIds.splice(random(markerIds.length), 1)
   deleteOperations.push(['delete', [id]])
 }
 
 function getRange () {
-  let start = {row: random(100), column: random(100)}
+  const start = { row: random(100), column: random(100) }
   let end = start
   while (random(3) > 0) {
-    end = traverse(end, {row: random.intBetween(-10, 10), column: random.intBetween(-10, 10)})
+    end = traverse(end, { row: random.intBetween(-10, 10), column: random.intBetween(-10, 10) })
   }
   end.row = Math.max(end.row, 0)
   end.column = Math.max(end.column, 0)
@@ -106,13 +106,13 @@ function getRange () {
 }
 
 function getSplice () {
-  let range = getRange()
-  let start = range[0]
-  let oldEnd = range[1]
-  let oldExtent = traversalDistance(oldEnd, start)
-  let newExtent = {row: 0, column: 0}
+  const range = getRange()
+  const start = range[0]
+  const oldEnd = range[1]
+  const oldExtent = traversalDistance(oldEnd, start)
+  let newExtent = { row: 0, column: 0 }
   while (random(2)) {
-    newExtent = traverse(newExtent, {row: random(10), column: random(10)})
+    newExtent = traverse(newExtent, { row: random(10), column: random(10) })
   }
   return [start, oldExtent, newExtent]
 }

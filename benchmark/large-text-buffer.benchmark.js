@@ -3,8 +3,6 @@ const fs = require('fs')
 const unzipper = require('unzipper')
 const { TextBuffer } = require('..')
 
-
-
 const getText = () => {
   return new Promise(resolve => {
     console.log('fetching text file...')
@@ -18,11 +16,11 @@ const getText = () => {
       res
         .pipe(unzipper)
         .on('entry', entry => {
-          let data = '';
-          entry.on('data', chunk => data += chunk);
+          let data = ''
+          entry.on('data', chunk => { data += chunk })
           entry.on('end', () => {
             resolve(data)
-          });
+          })
         })
     })
 

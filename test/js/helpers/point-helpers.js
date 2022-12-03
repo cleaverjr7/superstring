@@ -1,4 +1,4 @@
-exports.INFINITY_POINT = Object.freeze({row: Infinity, column: Infinity})
+exports.INFINITY_POINT = Object.freeze({ row: Infinity, column: Infinity })
 
 exports.compare = function compare (a, b) {
   if (a.row === b.row) {
@@ -40,9 +40,9 @@ exports.traverse = function traverse (start, distance) {
 
 exports.traversalDistance = function traversalDistance (end, start) {
   if (end.row === start.row) {
-    return {row: 0, column: end.column - start.column}
+    return { row: 0, column: end.column - start.column }
   } else {
-    return {row: end.row - start.row, column: end.column}
+    return { row: end.row - start.row, column: end.column }
   }
 }
 

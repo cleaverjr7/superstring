@@ -1,11 +1,11 @@
 let binding
 
 if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
-  binding = require('./browser');
+  binding = require('./browser')
 
-  const {TextBuffer, Patch} = binding
-  const {findSync, findAllSync, findAndMarkAllSync, findWordsWithSubsequenceInRange, getCharacterAtPosition} = TextBuffer.prototype
-  const DEFAULT_RANGE = Object.freeze({start: {row: 0, column: 0}, end: {row: Infinity, column: Infinity}})
+  const { TextBuffer, Patch } = binding
+  const { findSync, findAllSync, findAndMarkAllSync, findWordsWithSubsequenceInRange, getCharacterAtPosition } = TextBuffer.prototype
+  const DEFAULT_RANGE = Object.freeze({ start: { row: 0, column: 0 }, end: { row: Infinity, column: Infinity } })
 
   TextBuffer.prototype.findInRangeSync = function (pattern, range) {
     let ignoreCase = false
@@ -17,7 +17,7 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
     }
     const result = findSync.call(this, pattern, ignoreCase, unicode, range)
     if (typeof result === 'string') {
-      throw new Error(result);
+      throw new Error(result)
     } else {
       return result
     }
@@ -37,7 +37,7 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
     }
     const result = findAllSync.call(this, pattern, ignoreCase, unicode, range)
     if (typeof result === 'string') {
-      throw new Error(result);
+      throw new Error(result)
     } else {
       return result
     }
@@ -56,7 +56,7 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
     }
     const result = findAndMarkAllSync.call(this, markerIndex, nextId, exclusive, pattern, ignoreCase, unicode, range)
     if (typeof result === 'string') {
-      throw new Error(result);
+      throw new Error(result)
     } else {
       return result
     }
@@ -83,7 +83,7 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
   }
 
   TextBuffer.prototype.findWordsWithSubsequence = function (query, extraWordCharacters, maxCount) {
-    const range = {start: {row: 0, column: 0}, end: this.getExtent()}
+    const range = { start: { row: 0, column: 0 }, end: this.getExtent() }
     return Promise.resolve(
       findWordsWithSubsequenceInRange.call(this, query, extraWordCharacters, range).slice(0, maxCount)
     )
@@ -99,8 +99,8 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
     return String.fromCharCode(getCharacterAtPosition.call(this, position))
   }
 
-  const {compose} = Patch
-  const {splice} = Patch.prototype
+  const { compose } = Patch
+  const { splice } = Patch.prototype
 
   Patch.compose = function (patches) {
     const result = compose.call(this, patches)
@@ -124,7 +124,7 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
     }
   }
 
-  const {TextBuffer, TextWriter, TextReader} = binding
+  const { TextBuffer, TextWriter, TextReader } = binding
   const {
     load, save, baseTextMatchesFile,
     find, findAll, findSync, findAllSync, findWordsWithSubsequenceInRange
@@ -136,8 +136,8 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
       options = {}
     }
 
-    const computePatch = options.patch === false ? false : true
-    const discardChanges = options.force === true ? true : false
+    const computePatch = options.patch !== false
+    const discardChanges = options.force === true
     const encoding = normalizeEncoding(options.encoding || 'UTF-8')
 
     return new Promise((resolve, reject) => {
@@ -258,7 +258,7 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
 
   TextBuffer.prototype.findWordsWithSubsequence = function (query, extraWordCharacters, maxCount) {
     return this.findWordsWithSubsequenceInRange(query, extraWordCharacters, maxCount, {
-      start: {row: 0, column: 0},
+      start: { row: 0, column: 0 },
       end: this.getExtent()
     })
   }
@@ -273,7 +273,7 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
 
         let positionArrayIndex = 0
         for (let i = 0, n = matches.length; i < n; i++) {
-          let positionCount = positions[positionArrayIndex++]
+          const positionCount = positions[positionArrayIndex++]
           matches[i].positions = interpretPointArray(positions, positionArrayIndex, positionCount)
           positionArrayIndex += 2 * positionCount
         }
@@ -310,7 +310,7 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
   function interpretPointArray (rawData, startIndex, pointCount) {
     const points = []
     for (let i = 0; i < pointCount; i++) {
-      points.push({row: rawData[startIndex++], column: rawData[startIndex++]})
+      points.push({ row: rawData[startIndex++], column: rawData[startIndex++] })
     }
     return points
   }
@@ -340,7 +340,7 @@ if (process.env.SUPERSTRING_USE_BROWSER_VERSION) {
   }
 }
 
-function normalizeEncoding(encoding) {
+function normalizeEncoding (encoding) {
   return encoding.toUpperCase()
     .replace(/[^A-Z\d]/g, '')
     .replace(/^(UTF|UCS|ISO|WINDOWS|KOI8|EUC)(\w)/, '$1-$2')
@@ -351,5 +351,5 @@ function normalizeEncoding(encoding) {
 module.exports = {
   TextBuffer: binding.TextBuffer,
   Patch: binding.Patch,
-  MarkerIndex: binding.MarkerIndex,
+  MarkerIndex: binding.MarkerIndex
 }
